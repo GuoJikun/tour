@@ -13,15 +13,26 @@ const open = () => {
 const steps = ref([
   {
     target: "#copy",
+    title: "我是标题",
     content: "这是 copy 的内容",
   },
   {
     target: "#cute",
+    title: "我是标题",
     content: "这是 cute 的内容",
+    placement: "bottom",
   },
   {
     target: "#paste",
+    title: "我是标题",
     content: "这是 paste 的内容",
+    placement: "right",
+  },
+  {
+    target: "#paste1",
+    title: "我是标题",
+    content: "这是 paste 的内容",
+    placement: "left",
   },
 ]);
 </script>
@@ -43,6 +54,7 @@ const steps = ref([
       <button id="copy">复制</button>
       <button id="cute">剪切</button>
       <button id="paste">粘贴</button>
+      <button id="paste1">粘贴 1</button>
     </div>
   </div>
 

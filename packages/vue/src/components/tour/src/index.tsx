@@ -1,4 +1,4 @@
-import { defineComponent, reactive, ref } from "vue";
+import { defineComponent, onMounted, reactive, ref } from "vue";
 
 const getType = (val: unknown) => {
   return Object.prototype.toString.call(val).slice(8, -1).toLowerCase();
@@ -6,7 +6,10 @@ const getType = (val: unknown) => {
 
 export type Step = {
   target: HTMLElement | string;
+  title: string;
+  allowHtmlString: boolean;
   content: string;
+  placement: "top" | "left" | "right" | "bottom";
 };
 
 export type Steps = Array<Step>;
@@ -21,6 +24,13 @@ export default defineComponent({
     },
   },
   setup(props, { expose }) {
+    const dialogRef = ref<HTMLElement | null>(null);
+    const getDialogRect = () => {
+      if (dialogRef.value) {
+        return dialogRef.value.getBoundingClientRect();
+      }
+      return { width: 0, height: 0 };
+    };
     const getElRect = (el: HTMLElement | string) => {
       let targetEl: any = el;
       if (getType(el) === "string") {
@@ -44,16 +54,35 @@ export default defineComponent({
 
     const openTour = () => {
       visible.value = true;
+      const tmp = requestAnimationFrame(() => {
+        getStep();
+        cancelAnimationFrame(tmp);
+      });
     };
 
     const closeTour = () => {
       visible.value = false;
+      index.value = 0;
+      curStep.value = props.steps[0] as Step;
     };
 
     const getStep = () => {
       const rect = getElRect(curStep.value?.target as any);
-      position.left = rect.left;
-      position.top = rect.top;
+      const dialogRect = getDialogRect();
+      const placement = curStep.value?.placement || "top";
+      if (placement === "top") {
+        position.left = rect.left - dialogRect.width / 2 + rect.width / 2;
+        position.top = rect.top - dialogRect.height - 8;
+      } else if (placement === "right") {
+        position.left = rect.right + 8;
+        position.top = rect.top - dialogRect.height / 2 + rect.height / 2;
+      } else if (placement === "bottom") {
+        position.left = rect.left - dialogRect.width / 2 + rect.width / 2;
+        position.top = rect.bottom + 8;
+      } else if (placement === "left") {
+        position.left = rect.left - dialogRect.width - 8;
+        position.top = rect.top - dialogRect.height / 2 + rect.height / 2;
+      }
     };
 
     const prevStep = () => {
@@ -86,75 +115,83 @@ export default defineComponent({
             left: 0,
             width: "100%",
             height: `${rect.top}px`,
-            backgroundColor: "#ffa",
           }}
-        >
-          top
-        </div>,
+        ></div>,
         <div
           class="ivy-tour__mask-item"
           style={{
-            top: 0,
+            top: `${rect.top}px`,
             right: 0,
             width: `calc(100% - ${rect.right}px)`,
             height: "100%",
-            backgroundColor: "#afa",
           }}
-        >
-          right
-        </div>,
+        ></div>,
         <div
           class="ivy-tour__mask-item"
           style={{
             left: 0,
             bottom: 0,
-            width: "100%",
+            width: `${rect.right}px`,
             height: `calc(100% - ${rect.bottom}px)`,
-            backgroundColor: "#4fa",
           }}
-        >
-          bottom
-        </div>,
+        ></div>,
         <div
           class="ivy-tour__mask-item"
           style={{
-            top: 0,
+            top: `${rect.top}px`,
             left: 0,
             width: `${rect.left}px`,
-            height: "100%",
-            backgroundColor: "#9fa",
+            height: `${rect.height}px`,
           }}
-        >
-          left
-        </div>,
+        ></div>,
       ];
     };
 
     const renderDialog = () => {
       return [
-        <div>{curStep.value?.content}</div>,
-        <div>
-          <button
-            class="ivy-tour__dialog-item"
-            v-show={index.value > 0}
-            onClick={prevStep}
-          >
-            上一步
-          </button>
-          <button
-            class="ivy-tour__dialog-item"
-            v-show={index.value < props.steps.length - 1}
-            onClick={nextStep}
-          >
-            下一步
-          </button>
-          <button
-            class="ivy-tour__dialog-item"
-            v-show={index.value === props.steps.length - 1}
-            onClick={closeTour}
-          >
-            结束
-          </button>
+        <div class="ivy-tour__dialog--body">
+          <span>{curStep.value?.title}</span>
+          {curStep.value?.allowHtmlString ? (
+            <div innerHTML={curStep.value?.content}></div>
+          ) : (
+            <div>{curStep.value?.content}</div>
+          )}
+        </div>,
+        <div class="ivy-tour__dialog--footer">
+          <div class="ivy-tour__dialog--footer-no">
+            {props.steps.map((c, i) => {
+              if (i === index.value) {
+                return (
+                  <div class="ivy-tour__dialog--footer-no-item is-active"></div>
+                );
+              } else {
+                return <div class="ivy-tour__dialog--footer-no-item"></div>;
+              }
+            })}
+          </div>
+          <div>
+            <button
+              class="ivy-tour__dialog-btn"
+              v-show={index.value > 0}
+              onClick={prevStep}
+            >
+              上一步
+            </button>
+            <button
+              class="ivy-tour__dialog-btn"
+              v-show={index.value < props.steps.length - 1}
+              onClick={nextStep}
+            >
+              下一步
+            </button>
+            <button
+              class="ivy-tour__dialog-btn is-finish"
+              v-show={index.value === props.steps.length - 1}
+              onClick={closeTour}
+            >
+              结束
+            </button>
+          </div>
         </div>,
       ];
     };
@@ -164,7 +201,9 @@ export default defineComponent({
         <div class="ivy-tour">
           <div class="ivy-tour__mask">{renderMask()}</div>
           <div
+            ref={dialogRef}
             class="ivy-tour__dialog"
+            data-placement={curStep.value?.placement || "top"}
             style={{ top: `${position.top}px`, left: `${position.left}px` }}
           >
             {renderDialog()}
