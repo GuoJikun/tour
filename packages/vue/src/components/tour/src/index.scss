@@ -3,28 +3,30 @@
   --color-mask: rgba(0, 0, 0, 0.4);
   --tour-font-size: 12px;
   --tour-title-font-size: 14px;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 0;
   height: 0;
   pointer-events: none;
   &__mask {
-    width: 100vw;
-    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 900;
+    width: max-content;
+    height: max-content;
     pointer-events: none;
-    position: relative;
-    transition: top 0.3s, left 0.3s, right 0.3s, bottom 0.3s;
+    inset: 0;
     &-item {
       position: absolute;
       pointer-events: all;
-      background-color: var(--color-mask);
       transition: top 0.3s, left 0.3s, right 0.3s, bottom 0.3s;
     }
   }
   &__dialog {
     position: absolute;
-    z-index: 10;
+    z-index: 910;
     background-color: white;
     pointer-events: all;
     transition: top 0.3s, left 0.3s;

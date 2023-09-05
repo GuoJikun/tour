@@ -15,6 +15,7 @@ const steps = ref([
     target: "#copy",
     title: "我是标题",
     content: "这是 copy 的内容",
+    placement: "right",
   },
   {
     target: "#cute",
@@ -34,6 +35,12 @@ const steps = ref([
     content: "这是 paste 的内容",
     placement: "left",
   },
+  {
+    target: ".tour-1",
+    title: "我是标题",
+    content: "这是 paste 的内容",
+    placement: "top",
+  },
 ]);
 </script>
 
@@ -50,11 +57,19 @@ const steps = ref([
     <div>
       <button @click="open">打开 Tour</button>
     </div>
-    <div>
+    <div style="height: 20vh; padding-left: 10vw">
       <button id="copy">复制</button>
-      <button id="cute">剪切</button>
       <button id="paste">粘贴</button>
       <button id="paste1">粘贴 1</button>
+    </div>
+    <div style="height: 40vh; padding-left: 10vw">
+      <button id="cute">剪切</button>
+    </div>
+    <div style="height: 40vh; padding-left: 10vw">
+      <p>这是类容，为了出现滚动条</p>
+    </div>
+    <div style="height: 40vh; padding-left: 10vw">
+      <button class="tour-1">类选择器-1</button>
     </div>
   </div>
 
