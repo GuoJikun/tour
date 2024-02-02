@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, reactive, ref } from "vue";
+import { computed, defineComponent, onMounted, reactive, ref } from "vue";
 
 const getType = (val: unknown) => {
   return Object.prototype.toString.call(val).slice(8, -1).toLowerCase();
@@ -69,7 +69,8 @@ export default defineComponent({
     const getStep = () => {
       const rect = getElRect(curStep.value?.target as any);
       const dialogRect = getDialogRect();
-      const placement = curStep.value?.placement || "top";
+      let placement = curStep.value?.placement || "top";
+
       if (placement === "top") {
         position.left = rect.left - dialogRect.width / 2 + rect.width / 2;
         position.top = rect.top - dialogRect.height - 8;
@@ -104,47 +105,30 @@ export default defineComponent({
     expose({
       open: openTour,
     });
-
+    const client = reactive({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+    const getPath = (targetRect: DOMRect) => {
+      return `M${client.width},0 L0,0 L0,${client.height} L${client.width},${
+        client.height
+      } L${client.width},0 Z M${targetRect.left},${targetRect.top - 2} h${
+        targetRect.width
+      } a2,2 0 0 1 2,2 v${targetRect.height} a2,2 0 0 1 -2,2 h-${
+        targetRect.width
+      } a2,2 0 0 1 -2,-2 v-${targetRect.height} a2,2 0 0 1 2,-2 z`;
+    };
     const renderMask = () => {
       const rect = getElRect(curStep.value?.target as any);
-      return [
-        <div
-          class="ivy-tour__mask-item"
-          style={{
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: `${rect.top}px`,
-          }}
-        ></div>,
-        <div
-          class="ivy-tour__mask-item"
-          style={{
-            top: `${rect.top}px`,
-            right: 0,
-            width: `calc(100% - ${rect.right}px)`,
-            height: "100%",
-          }}
-        ></div>,
-        <div
-          class="ivy-tour__mask-item"
-          style={{
-            left: 0,
-            bottom: 0,
-            width: `${rect.right}px`,
-            height: `calc(100% - ${rect.bottom}px)`,
-          }}
-        ></div>,
-        <div
-          class="ivy-tour__mask-item"
-          style={{
-            top: `${rect.top}px`,
-            left: 0,
-            width: `${rect.left}px`,
-            height: `${rect.height}px`,
-          }}
-        ></div>,
-      ];
+      const d = getPath(rect);
+      return (
+        <svg style="width: 100%;height: 100%">
+          <path
+            d={d}
+            style="fill: rgba(0, 0, 0, 0.5); pointer-events: auto; cursor: auto"
+          ></path>
+        </svg>
+      );
     };
 
     const renderDialog = () => {
